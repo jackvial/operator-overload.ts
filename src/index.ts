@@ -104,14 +104,13 @@ const c = a * b;
 console.log("c: ", c);
 console.log('-----------------------------------');
 
-console.log('Tensor Scalar Multiplication Example (Scalar Left)');
+console.log('Tensor Scalar Multiplication Example (Scalar Right)');
 // @ts-ignore
-const d = a * 2; // Transformed into a.__mul__(b)
+const d = a * 2;
 console.log("d: ", d)
 console.log('-----------------------------------');
 
-console.log('Tensor Scalar Multiplication Example (Scalar Right)');
-
+console.log('Tensor Scalar Multiplication Example (Scalar Left)');
 // @ts-ignore
 const e = 2 * a;
 console.log("e: ", e);
