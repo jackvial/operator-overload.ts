@@ -3,6 +3,16 @@ Using TS Compiler API to add operator overloading to TS
 
 # Examples
 ```
+const a = new Tensor([
+    [1, 2],
+    [3, 4]
+]);
+
+const b = new Tensor([
+    [5, 6],
+    [7, 8]
+]);
+
 console.log('Tensor Tensor Multiplication Example');
 // @ts-ignore
 const c = a * b;
