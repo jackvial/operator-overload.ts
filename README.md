@@ -1,4 +1,4 @@
-# Operator Overload TS
+# Operator Overloading In TypeScript
 Using TS Compiler API to add operator overloading to TS
 
 # Examples
