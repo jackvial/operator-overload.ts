@@ -1,41 +1,120 @@
 class Tensor {
     value: number[][];
+    grad: number[][] | null;
+    _backward: (() => void) | null;
+    _prev: Set<Tensor>;
+    _op: string | null;
 
-    constructor(value: number[][]) {
+    constructor(
+        value: number[][],
+        _children: Tensor[] = [],
+        _op: string | null = null
+    ) {
         this.value = value;
+        this.grad = null;
+        this._backward = null;
+        this._prev = new Set(_children);
+        this._op = _op;
     }
 
     __add__(other: Tensor): Tensor {
-        const result = addMatrices(this.value, other.value);
-        return new Tensor(result);
+        const resultValue = addMatrices(this.value, other.value);
+        const out = new Tensor(resultValue, [this, other], '+');
+
+        out._backward = () => {
+            // Accumulate gradients from the output
+            const grad = out.grad!;
+            this.grad = addMatrices(this.grad || zerosLike(this.value), grad);
+            other.grad = addMatrices(other.grad || zerosLike(other.value), grad);
+        };
+
+        return out;
     }
 
     __sub__(other: Tensor): Tensor {
-        const result = subtractMatrices(this.value, other.value);
-        return new Tensor(result);
+        const resultValue = subtractMatrices(this.value, other.value);
+        const out = new Tensor(resultValue, [this, other], '-');
+
+        out._backward = () => {
+            const grad = out.grad!;
+            this.grad = addMatrices(this.grad || zerosLike(this.value), grad);
+            other.grad = subtractMatrices(other.grad || zerosLike(other.value), grad);
+        };
+
+        return out;
     }
 
     __mul__(other: Tensor): Tensor {
-        // Check if 'other' is a scalar Tensor (i.e., a 1x1 matrix)
-        if ((other.value.length === 1 && other.value[0].length === 1)) {
-            const scalar = other.value[0][0];
-            const result = this.value.map(row => row.map(val => val * scalar));
-            return new Tensor(result);
+        const resultValue = multiplyMatrices(this.value, other.value);
+        const out = new Tensor(resultValue, [this, other], '*');
 
-        // Check if this Tensor is a scalar (1x1 matrix)
-        } else if (
-            this.value.length === 1 && this.value[0].length === 1
-        ) {
-            const scalar = this.value[0][0];
-            const result = other.value.map(row => row.map(val => val * scalar));
-            return new Tensor(result);
-        } else {
-            // Perform matrix multiplication
-            const result = multiplyMatrices(this.value, other.value);
-            return new Tensor(result);
-        }
+        out._backward = () => {
+            const grad = out.grad!;
+            this.grad = addMatrices(
+                this.grad || zerosLike(this.value),
+                multiplyMatrices(grad, other.value)
+            );
+            other.grad = addMatrices(
+                other.grad || zerosLike(other.value),
+                multiplyMatrices(this.value, grad)
+            );
+        };
+
+        return out;
+    }
+
+    // Sum all elements (reduces tensor to scalar)
+    sum(): Tensor {
+        const sumValue = this.value.reduce((acc, row) => acc + row.reduce((a, b) => a + b, 0), 0);
+        const out = new Tensor([[sumValue]], [this], 'sum');
+
+        out._backward = () => {
+            const grad = out.grad!;
+            const ones = onesLike(this.value);
+            this.grad = addMatrices(
+                this.grad || zerosLike(this.value),
+                multiplyScalar(ones, grad[0][0])
+            );
+        };
+
+        return out;
+    }
+
+    // Backpropagation
+    backward(): void {
+        const topo: Tensor[] = [];
+        const visited = new Set<Tensor>();
+
+        const buildTopo = (v: Tensor) => {
+            if (!visited.has(v)) {
+                visited.add(v);
+                v._prev.forEach(child => buildTopo(child));
+                topo.push(v);
+            }
+        };
+
+        buildTopo(this);
+
+        // Initialize the gradient of the output tensor
+        this.grad = onesLike(this.value);
+
+        // Traverse in reverse topological order
+        topo.reverse().forEach(tensor => {
+            if (tensor._backward) {
+                tensor._backward();
+            }
+        });
     }
 }
+
+function zerosLike(a: number[][]): number[][] {
+    return a.map(row => row.map(() => 0));
+}
+
+function onesLike(a: number[][]): number[][] {
+    return a.map(row => row.map(() => 1));
+}
+
 
 function addMatrices(a: number[][], b: number[][]): number[][] {
     if (a.length !== b.length || a[0].length !== b[0].length) {
@@ -63,6 +142,10 @@ function multiply(a: any, b: any): any {
     } else {
         throw new Error('Multiplication not defined for the given types');
     }
+}
+
+function multiplyScalar(a: number[][], scalar: number): number[][] {
+    return a.map(row => row.map(val => val * scalar));
 }
 
 function multiplyMatrices(a: number[][], b: number[][]): number[][] {
@@ -104,13 +187,27 @@ const c = a * b;
 console.log("c: ", c);
 console.log('-----------------------------------');
 
-console.log('Tensor Scalar Multiplication Example (Scalar Right)');
+// Compute gradients
 // @ts-ignore
-const d = a * 2;
-console.log("d: ", d)
-console.log('-----------------------------------');
+c.backward();
 
-console.log('Tensor Scalar Multiplication Example (Scalar Left)');
+// Outputs
 // @ts-ignore
-const e = 2 * a;
-console.log("e: ", e);
+console.log('c:', c.value);
+
+// @ts-ignore
+console.log('dc/da:', a.grad);
+
+// @ts-ignore
+console.log('dc/db:', b.grad);
+
+// console.log('Tensor Scalar Multiplication Example (Scalar Right)');
+// // @ts-ignore
+// const d = a * 2;
+// console.log("d: ", d)
+// console.log('-----------------------------------');
+
+// console.log('Tensor Scalar Multiplication Example (Scalar Left)');
+// // @ts-ignore
+// const e = 2 * a;
+// console.log("e: ", e);
