@@ -16,8 +16,16 @@ class Tensor {
     }
 
     __mul__(other: Tensor): Tensor {
-        const result = multiplyMatrices(this.value, other.value);
-        return new Tensor(result);
+        // Check if 'other' is a scalar Tensor (i.e., a 1x1 matrix)
+        if (other.value.length === 1 && other.value[0].length === 1) {
+            const scalar = other.value[0][0];
+            const result = this.value.map(row => row.map(val => val * scalar));
+            return new Tensor(result);
+        } else {
+            // Perform matrix multiplication
+            const result = multiplyMatrices(this.value, other.value);
+            return new Tensor(result);
+        }
     }
 }
 
@@ -79,10 +87,23 @@ const b = new Tensor([
     [7, 8]
 ]);
 
+console.log('a: ', a);
+console.log('b: ', b);
+
+console.log('Tensor Tensor Multiplication Example');
 // @ts-ignore
-const c = a * b; // Transformed into a.__mul__(b)
-console.log("c: ", c)
+const c = a * b;
+console.log("c: ", c);
+console.log('-----------------------------------');
+
+console.log('Tensor Scalar Multiplication Example (Scalar Left)');
+// @ts-ignore
+const d = a * 2; // Transformed into a.__mul__(b)
+console.log("d: ", d)
+console.log('-----------------------------------');
+
+console.log('Tensor Scalar Multiplication Example (Scalar Right)');
 
 // @ts-ignore
-console.log('Matrix multiplication result:', c.value);
-// Expected output: [ [ 19, 22 ], [ 43, 50 ] ]
+const e = 2 * a;
+console.log("e: ", e);

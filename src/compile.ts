@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import * as path from 'path';
 import * as fs from 'fs';
-import { dunderTransformer } from './transformer';
+import { tensorScalarMultiplicationTransformer } from './transformer';
 
 const fileNames = [path.resolve(__dirname, 'index.ts')];
 const compilerOptions: ts.CompilerOptions = {
@@ -15,7 +15,7 @@ const compilerOptions: ts.CompilerOptions = {
 function compile(fileNames: string[], options: ts.CompilerOptions): void {
   const program = ts.createProgram(fileNames, options);
   const emitResult = program.emit(undefined, undefined, undefined, undefined, {
-    before: [dunderTransformer(program)],
+    before: [tensorScalarMultiplicationTransformer(program)],
   });
 
   const diagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
