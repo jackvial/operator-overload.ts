@@ -1,12 +1,16 @@
 {
-    "compilerOptions": {
-      "target": "es2017",
-      "module": "commonjs",
-      "outDir": "dist",
-      "strict": true,
-      "moduleResolution": "node",
-      "esModuleInterop": true
-    },
-    "include": ["src"]
-  }
-  
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2017",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "plugins": [
+      {
+        "transform": "./src/transformer.ts",
+        "type": "program"
+      }
+    ]
+  },
+  "include": ["./src/**/*"]
+}
