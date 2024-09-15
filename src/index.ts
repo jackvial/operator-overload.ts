@@ -68,21 +68,21 @@ function multiplyMatrices(a: number[][], b: number[][]): number[][] {
     return result;
 }
 
-// @ts-ignore
+
 const a = new Tensor([
     [1, 2],
     [3, 4]
-  ]);
-  
-  // @ts-ignore
-  const b = new Tensor([
+]);
+
+const b = new Tensor([
     [5, 6],
     [7, 8]
-  ]);
-  
-  // @ts-ignore
-  const c = a * b; // Transformed into a.__mul__(b)
-  
-  // @ts-ignore
-  console.log('Matrix multiplication result:', c.value);
-  // Expected output: [ [ 19, 22 ], [ 43, 50 ] ]
+]);
+
+// @ts-ignore
+const c = a * b; // Transformed into a.__mul__(b)
+console.log("c: ", c)
+
+// @ts-ignore
+console.log('Matrix multiplication result:', c.value);
+// Expected output: [ [ 19, 22 ], [ 43, 50 ] ]
