@@ -22,7 +22,7 @@ console.log("e: ", e);
 ```
 
 # Compile
-`npx ts-node src/compile.ts`
+`npm run build` or `npx ts-node src/compile.ts`
 
-# Run
-`node dist/index.js`
+# Run Example
+`npm run example` or `node dist/index.js`
