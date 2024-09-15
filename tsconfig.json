@@ -5,12 +5,6 @@
     "moduleResolution": "node",
     "outDir": "./dist",
     "esModuleInterop": true,
-    "plugins": [
-      {
-        "transform": "./src/transformer.ts",
-        "type": "program"
-      }
-    ]
   },
   "include": ["./src/**/*"]
 }
