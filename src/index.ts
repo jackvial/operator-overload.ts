@@ -17,9 +17,17 @@ class Tensor {
 
     __mul__(other: Tensor): Tensor {
         // Check if 'other' is a scalar Tensor (i.e., a 1x1 matrix)
-        if (other.value.length === 1 && other.value[0].length === 1) {
+        if ((other.value.length === 1 && other.value[0].length === 1)) {
             const scalar = other.value[0][0];
             const result = this.value.map(row => row.map(val => val * scalar));
+            return new Tensor(result);
+
+        // Check if this Tensor is a scalar (1x1 matrix)
+        } else if (
+            this.value.length === 1 && this.value[0].length === 1
+        ) {
+            const scalar = this.value[0][0];
+            const result = other.value.map(row => row.map(val => val * scalar));
             return new Tensor(result);
         } else {
             // Perform matrix multiplication
