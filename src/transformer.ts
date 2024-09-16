@@ -6,6 +6,11 @@ export function tensorScalarMultiplicationTransformer(program: ts.Program): ts.T
   const checker = program.getTypeChecker();
   return (context: ts.TransformationContext) => {
     const visit: ts.Visitor = (node: ts.Node): ts.Node => {
+      // Check if expression contains at least one Tensor class and at least one * operator
+      // Should check for more than binary expressions e.g. const y = x * w + 2
+      
+
+
       // Check for binary expressions with the '*' operator
       if (ts.isBinaryExpression(node)) {
         const left = node.left;
@@ -15,13 +20,22 @@ export function tensorScalarMultiplicationTransformer(program: ts.Program): ts.T
 
         // Tensor * Scalar or Scalar * Tensor case
         if (operator === ts.SyntaxKind.AsteriskToken) {
+          console.log('---------------------');
+          console.log('Found binary expression:', node.getText());
+          console.log('Left:', left.getText());
+          console.log('Right:', right.getText());
           const isLeftTensor = isTensor(left);
           const isRightTensor = isTensor(right);
+          console.log('isLeftTensor:', isLeftTensor);
+          console.log('isRightTensor:', isRightTensor);
           const isLeftNumber = ts.isNumericLiteral(left);
           const isRightNumber = ts.isNumericLiteral(right);
+          console.log('isLeftNumber:', isLeftNumber);
+          console.log('isRightNumber:', isRightNumber);
   
-          
-          if ((isLeftTensor && isRightNumber) || (isLeftNumber && isRightTensor)) {
+          // This fixes scalars not being wrapped in Tensor but breaks operator overloading for the Tensor * Tensor part
+          // Need to keep recursive calls to the transformer for Tensor * Tensor
+          if ((isLeftNumber || isRightNumber)) {
             // Wrap the scalar number into a Tensor
             const newLeft = isLeftNumber ? wrapScalarInTensor(left) : left;
             const newRight = isRightNumber ? wrapScalarInTensor(right) : right;
@@ -79,6 +93,7 @@ function isTensor(node: ts.Node): boolean {
 
 // Helper function to wrap a scalar number into a Tensor instance
 function wrapScalarInTensor(node: ts.Expression): ts.NewExpression {
+  console.log('Wrapping scalar in Tensor:', node.getText());
   return ts.factory.createNewExpression(
     ts.factory.createIdentifier('Tensor'),
     undefined,

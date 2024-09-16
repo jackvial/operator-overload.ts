@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "npx ts-node src/compile.ts",
-    "example": "node dist/index.js"
+    "example": "node dist/index.js",
+    "rb": "npm run build && npm run example"
   },
   "keywords": [],
   "author": "",
